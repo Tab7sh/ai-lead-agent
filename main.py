@@ -42,8 +42,8 @@ class LeadInfo(BaseModel):
     customer_email: str = Field(description="Email address. Return 'None' if missing.")
     phone_number: str = Field(description="Phone number. Return 'None' if missing.")
     budget: str = Field(description="Budget if mentioned, else 'Not Specified'.")
-lead_score: str = Field(description="Score 1 to 10. MUST be a string value like '8' or '3'.")
-   category: str = Field(description="Classify as 'Sales' or 'Support'.")
+    lead_score: str = Field(description="Score 1 to 10. MUST be a string value like '8' or '3'.")
+    category: str = Field(description="Classify as 'Sales' or 'Support'.")
     summary: str = Field(description="A 1-line summary of the request.")
 
 class IncomingLead(BaseModel):
