@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabish AI Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white flex items-center justify-center h-screen">
+    <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-md border border-blue-500">
+        <h1 class="text-2xl font-bold mb-4 text-blue-400">🚀 Enterprise AI Agent</h1>
+        <p class="text-gray-400 mb-6 text-sm">Send a message for Sales or Support. Our AI will route it instantly!</p>
+        
+        <textarea id="rawText" class="w-full p-4 bg-gray-700 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-400 text-white h-32" placeholder="Example: Hi, I'm Tabish. My email is tabish@test.com. I want to buy an AI bot with a $10k budget."></textarea>
+        
+        <button onclick="sendToAI()" id="sendBtn" class="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-all duration-200">
+            Send Message ⚡
+        </button>
+        
+        <div id="status" class="mt-4 text-center text-sm font-medium hidden"></div>
+    </div>
+
+    <script>
+        async function sendToAI() {
+            const rawText = document.getElementById('rawText').value;
+            const statusDiv = document.getElementById('status');
+            const btn = document.getElementById('sendBtn');
+
+            if(!rawText) return alert("Please type something first!");
+
+            // Show Loading
+            statusDiv.innerHTML = "AI is thinking... 🧠";
+            statusDiv.classList.remove('hidden', 'text-green-400', 'text-red-400');
+            statusDiv.classList.add('text-blue-400');
+            btn.disabled = true;
+
+          // ... (oopar ka code same rahega) ...
+
+            try {
+                const response = await fetch('https://[AAPKA-VERCEL-URL].vercel.app/capture-lead', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-API-Key': 'Tabish_Pro_Agent_2026_Secret'  // 🚨 YEH CHABI (KEY) ADD KI HAI
+                    },
+                    body: JSON.stringify({ raw_text: rawText })
+                });
+
+// ... (neeche ka code same rahega) ...
+                if (response.ok) {
+                    statusDiv.innerHTML = "Success! Routed to Team. ✅";
+                    statusDiv.classList.replace('text-blue-400', 'text-green-400');
+                    document.getElementById('rawText').value = "";
+                } else {
+                    statusDiv.innerHTML = "Error sending message. ❌";
+                    statusDiv.classList.replace('text-blue-400', 'text-red-400');
+                }
+            } catch (err) {
+                statusDiv.innerHTML = "Connection Failed. ⚠️";
+                statusDiv.classList.replace('text-blue-400', 'text-red-400');
+            }
+            btn.disabled = false;
+        }
+    </script>
+</body>
+</html>
+
