@@ -34,7 +34,7 @@ def get_api_key(api_key: str = Security(api_key_header)):
     raise HTTPException(status_code=403, detail="Bhai, access denied! Invalid API Key.")
 
 # --- 4. ENVIRONMENT VARIABLES ---
-os.environ["GROQ_API_KEY"] = os.getenv("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", "fallback_key_here")
+os.environ["GROQ_API_KEY"] = os.getenv("GROQ_API_KEY", "fallback_key_here")
 
 # --- 5. DATA SCHEMAS ---
 class LeadInfo(BaseModel):
