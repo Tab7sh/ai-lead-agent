@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 # --- 2. INITIALIZE APP & CORS ---
-app = FastAPI(title="Enterprise AI Lead Automation PRO")
+app = FastAPI(title="Tabish Enterprise AI Agent")
 
 app.add_middleware(
     CORSMiddleware,
@@ -23,7 +23,6 @@ app.add_middleware(
 )
 
 # --- 3. SECURITY (API KEY LOCK) ---
-# Yeh aapka secret password hai. Frontend ko yeh key bhejni hogi.
 API_KEY = "Tabish_Pro_Agent_2026_Secret"
 api_key_header = APIKeyHeader(name="X-API-Key")
 
@@ -31,12 +30,13 @@ def get_api_key(api_key: str = Security(api_key_header)):
     if api_key == API_KEY:
         return api_key
     logger.warning(f"⚠️ SECURITY ALERT: Unauthorized access attempt detected!")
-    raise HTTPException(status_code=403, detail="Bhai, access denied! Invalid API Key.")
+    raise HTTPException(status_code=403, detail="Access denied! Invalid API Key.")
 
 # --- 4. ENVIRONMENT VARIABLES ---
+# Vercel Settings se automatically key uthayega
 os.environ["GROQ_API_KEY"] = os.getenv("GROQ_API_KEY", "fallback_key_here")
 
-# --- 5. DATA SCHEMAS ---
+# --- 5. DATA SCHEMAS (With Phase 7 Memory) ---
 class LeadInfo(BaseModel):
     customer_name: str = Field(description="Name of the customer. Return 'None' if missing.")
     customer_email: str = Field(description="Email address. Return 'None' if missing.")
@@ -48,29 +48,40 @@ class LeadInfo(BaseModel):
 
 class IncomingLead(BaseModel):
     raw_text: str
+    chat_history: str = ""  # AI KI NAYI DIARY (MEMORY)
 
 # --- 6. AI BRAIN SETUP ---
 llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0).with_structured_output(LeadInfo)
 
-# --- 7. THE MAIN ENDPOINT (Now Secured!) ---
+# --- 7. THE MAIN ENDPOINT ---
 @app.post("/capture-lead")
 async def capture_and_score_lead(lead: IncomingLead, api_key: str = Depends(get_api_key)):
-    logger.info("🔔 Naya Lead Aaya! AI Analyze kar raha hai...")
+    logger.info("🔔 Naya Message Aaya! AI Analyze kar raha hai...")
     
     try:
+        # Phase 7: AI ko purani baatein aur naya message ek sath dena
+        full_prompt = f"""
+        Previous Conversation Context (if any):
+        {lead.chat_history}
+        
+        Latest Message:
+        {lead.raw_text}
+        
+        Now, combining all the information above, extract the lead details.
+        """
+        
         # AI Data Extraction
-        ai_analysis = llm.invoke(lead.raw_text)
+        ai_analysis = llm.invoke(full_prompt)
         logger.info(f"✅ AI Analysis Complete. Category: {ai_analysis.category}, Score: {ai_analysis.lead_score}")
         
-        # Make.com Webhook URL
-        MAKE_WEBHOOK_URL = "https://hook.eu1.make.com/5b3eqexi26nbyhxf9e70gn5dpxrrldah"
+        # Make.com Webhook URL (Aapka latest working link)
+        MAKE_WEBHOOK_URL = "https://hook.us1.make.com/5bjeyexi26nbyhxf9e70gn5dpxrrldah"
         
         # Send Data to Make.com
-        logger.info("🚀 Data Make.com par bhej rahe hain...")
         webhook_response = requests.post(MAKE_WEBHOOK_URL, json=ai_analysis.dict())
         
         if webhook_response.status_code == 200:
-            logger.info("✅ Data Make.com par successfully receive ho gaya!")
+            logger.info("✅ Data Make.com par bhej diya gaya!")
         else:
             logger.error(f"❌ Make.com Error: {webhook_response.text}")
             
