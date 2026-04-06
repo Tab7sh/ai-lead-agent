@@ -75,7 +75,7 @@ async def capture_and_score_lead(lead: IncomingLead, api_key: str = Depends(get_
         logger.info(f"✅ AI Analysis Complete. Category: {ai_analysis.category}, Score: {ai_analysis.lead_score}")
         
         # Make.com Webhook URL (Aapka latest working link)
-        MAKE_WEBHOOK_URL = "https://hook.us1.make.com/5bjeyexi26nbyhxf9e70gn5dpxrrldah"
+        MAKE_WEBHOOK_URL = "https://hook.eu1.make.com/5b3eqexi26nbyhxf9e70gn5dpxrrldah"
         
         # Send Data to Make.com
         webhook_response = requests.post(MAKE_WEBHOOK_URL, json=ai_analysis.dict())
