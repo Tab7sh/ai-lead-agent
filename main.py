@@ -34,8 +34,10 @@ def get_api_key(api_key: str = Security(api_key_header)):
     raise HTTPException(status_code=403, detail="Access denied! Invalid API Key.")
 
 # --- 4. ENVIRONMENT VARIABLES ---
-# Vercel Settings se automatically key uthayega
-os.environ["GROQ_API_KEY"] = os.getenv("GROQ_API_KEY", "fallback_key_here")
+# Vercel automatically injects env vars - no override needed
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+if not GROQ_API_KEY:
+    logger.error("❌ GROQ_API_KEY is not set!")
 
 # --- 5. DATA SCHEMAS (With Phase 7 Memory) ---
 class LeadInfo(BaseModel):
@@ -51,8 +53,7 @@ class IncomingLead(BaseModel):
     raw_text: str
     chat_history: str = ""  # AI KI NAYI DIARY (MEMORY)
 
-# --- 6. AI BRAIN SETUP ---
-llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0).with_structured_output(LeadInfo)
+# --- 6. AI BRAIN SETUP (lazy init to avoid cold-start crashes) ---
 
 # --- 7. SERVE FRONTEND ---
 @app.get("/")
@@ -63,6 +64,12 @@ async def serve_frontend():
 @app.post("/capture-lead")
 async def capture_and_score_lead(lead: IncomingLead, api_key: str = Depends(get_api_key)):
     logger.info("🔔 Naya Message Aaya! AI Analyze kar raha hai...")
+    
+    # Lazy LLM init
+    key = os.getenv("GROQ_API_KEY")
+    if not key:
+        raise HTTPException(status_code=500, detail="GROQ_API_KEY not configured on server")
+    llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0, groq_api_key=key).with_structured_output(LeadInfo)
     
     try:
         # Phase 7: AI ko purani baatein aur naya message ek sath dena
@@ -99,4 +106,4 @@ async def capture_and_score_lead(lead: IncomingLead, api_key: str = Depends(get_
         
     except Exception as e:
         logger.error(f"❌ System Crash/Error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+        raise HTTPException(status_code=500, detail=str(e))
