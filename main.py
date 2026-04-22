@@ -2,6 +2,7 @@ import os
 import requests
 import logging
 from fastapi import FastAPI, Depends, HTTPException, Security
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from langchain_groq import ChatGroq
 from fastapi.middleware.cors import CORSMiddleware
@@ -53,7 +54,12 @@ class IncomingLead(BaseModel):
 # --- 6. AI BRAIN SETUP ---
 llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0).with_structured_output(LeadInfo)
 
-# --- 7. THE MAIN ENDPOINT ---
+# --- 7. SERVE FRONTEND ---
+@app.get("/")
+async def serve_frontend():
+    return FileResponse("index.html")
+
+# --- 8. THE MAIN ENDPOINT ---
 @app.post("/capture-lead")
 async def capture_and_score_lead(lead: IncomingLead, api_key: str = Depends(get_api_key)):
     logger.info("🔔 Naya Message Aaya! AI Analyze kar raha hai...")
